@@ -130,14 +130,70 @@ const W=960,H=540;
 canvas.width=W;
 canvas.height=H;
 
+
+function makeCourse(name,length,spikeEvery,exit){
+ const platforms=[[0,480,230]];
+ const heights=[440,400,440,480];
+ let x=260;
+ let i=0;
+
+ // Plataformas más cercanas y cambios de altura alcanzables.
+ while(x<length-330){
+  platforms.push([x,heights[i%heights.length],110]);
+  x+=130;
+  i++;
+ }
+
+ // Llegada amplia y segura.
+ platforms.push([length-200,480,200]);
+
+ const spikes=[];
+
+ // Los pinchos aparecen en plataformas alternadas.
+ // Siempre quedan espacios para aterrizar y saltar.
+ for(let j=1;j<platforms.length-1;j++){
+  const p=platforms[j];
+
+  if(j%spikeEvery===0){
+   spikes.push([p[0]+36,p[1]-15]);
+  }
+ }
+
+ // Ocho corazones repartidos por plataformas sin pinchos.
+ const safePlatforms=platforms
+  .slice(1,-1)
+  .filter((p,index)=>((index+1)%spikeEvery)!==0);
+
+ const hearts=[];
+
+ for(let j=0;j<8;j++){
+  const index=Math.round(
+   j*(safePlatforms.length-1)/7
+  );
+  const p=safePlatforms[index];
+
+  hearts.push([
+   p[0]+p[2]/2,
+   p[1]-45
+  ]);
+ }
+
+ return {
+  name,
+  length,
+  platforms,
+  spikes,
+  hearts,
+  exit
+ };
+}
+
 const levels=[
-{
- name:"BOSQUE ROSA",length:2600,
- platforms:[
- [0,480,340],[410,430,150],[620,380,150],[830,435,170],
- [1060,390,160],[1280,350,150],[1500,420,180],
- [1740,380,150],[1950,435,180],[2190,390,150],[2400,480,200]
- ],
+ makeCourse("BOSQUE ROSA",2600,4,2500),
+ makeCourse("CUEVAS DEL DESTINO",3000,3,2900),
+ makeCourse("CASTILLO DEL SIEMPRE",3400,2,3280)
+];
+
  spikes:[
  [365,465],[500,415],[685,420],[920,375],
  [1140,335],[1360,405],[1580,365],[1820,420],
