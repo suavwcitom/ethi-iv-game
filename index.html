@@ -136,20 +136,44 @@ const player={
  grounded:false,face:1,anim:0,invincible:0
 };
 
+
 function loadLevel(){
  const src=levels[levelIndex];
+
  level={
   ...src,
-  platforms:src.platforms.map(p=>({x:p[0],y:p[1],w:p[2],h:20})),
-  spikes:src.spikes.map(p=>({x:p[0],y:p[1],w:38,h:15})),
-  hearts:src.hearts.map(p=>({x:p[0],y:p[1],got:false})),
-  checkpoints:[Math.floor(src.length*.38),Math.floor(src.length*.72)],
+  platforms:src.platforms.map(p=>({
+   x:p[0],y:p[1],w:p[2],h:20
+  })),
+  spikes:src.spikes.map(p=>({
+   x:p[0],y:p[1],w:38,h:15
+  })),
+  hearts:src.hearts.map(p=>({
+   x:p[0],y:p[1],got:false
+  })),
+  checkpoints:[
+   Math.floor(src.length*.38),
+   Math.floor(src.length*.72)
+  ],
   activated:0
  };
- player.x=40;player.y=390;player.vx=0;player.vy=0;
- player.invincible=80;
+
+ // Aparecer centrado sobre la primera plataforma.
+ const ground=level.platforms.find(p=>
+  p.x<=40 && p.x+p.w>=40+player.w
+ );
+
+ player.x=40;
+ player.y=ground ? ground.y-player.h : 300;
+ player.vx=0;
+ player.vy=0;
+ player.grounded=!!ground;
+ player.face=1;
+ player.anim=0;
+ player.invincible=100;
  camera=0;
 }
+
 
 function startGame(){
  levelIndex=0;score=0;lives=3;
@@ -293,6 +317,40 @@ function drawBoy(x,feet,shirt,skin,hair,walking,jumping,flip=false){
  ctx.restore();
 }
 
+
+function heartIsSafe(h){
+ const margin=12;
+ const heartBox={
+  x:h.x-10,
+  y:h.y-10,
+  w:20,
+  h:20
+ };
+
+ // Nunca permitir corazones dentro de pinchos.
+ for(const s of level.spikes){
+  const spikeBox={
+   x:s.x- margin,
+   y:s.y- margin,
+   w:s.w+margin*2,
+   h:s.h+margin*2
+  };
+
+  if(intersects(heartBox,spikeBox)) return false;
+ }
+
+ // El corazón debe estar cerca de una plataforma,
+ // pero no debajo de ella ni dentro de su superficie.
+ const hasFloor=level.platforms.some(p=>
+  h.x+9>p.x &&
+  h.x-9<p.x+p.w &&
+  h.y+20>=p.y-55 &&
+  h.y+20<=p.y+8
+ );
+
+ return hasFloor;
+}
+
 function draw(){
  drawBackground();drawPlatforms();drawSpikes();
 
@@ -304,16 +362,14 @@ function draw(){
   ctx.fillRect(x+4,345,25,15);
  }
 
- for(const h of level.hearts){
-  if(!h.got){
-   let danger=level.spikes.some(s=>
-    Math.abs(s.x-h.x)<s.w+12&&Math.abs(s.y-h.y)<s.h+18);
-   if(!danger){
-    let y=h.y+Math.sin(frame*.08+h.x)*3;
-    drawHeart(h.x-camera,y,20);
-   }
-  }
+ 
+for(const h of level.hearts){
+ if(!h.got && heartIsSafe(h)){
+  const y=h.y+Math.sin(frame*.08+h.x)*2;
+  drawHeart(h.x-camera,y,20);
  }
+}
+
 
  // Ethi espera al final del camino.
  drawBoy(level.exit-camera+35,480,"#24202e","#e9b69d","#19131f",false,false);
@@ -361,9 +417,19 @@ function update(){
  const hb={x:player.x+4,y:player.y+4,w:player.w-8,h:player.h-4};
  if(player.invincible===0&&level.spikes.some(s=>intersects(hb,s)))respawn();
 
- for(const h of level.hearts){
-  if(h.got)continue;
-  const dangerous=level.spikes.some(s=>
+
+for(const h of level.hearts){
+ if(h.got || !heartIsSafe(h)) continue;
+
+ const dx=player.x+player.w/2-h.x;
+ const dy=player.y+player.h/2-h.y;
+
+ if(dx*dx+dy*dy<32*32){
+  h.got=true;
+  score++;
+ }
+}
+
    Math.abs(s.x-h.x)<s.w+12&&Math.abs(s.y-h.y)<s.h+18);
   if(dangerous)continue;
   let dx=player.x+player.w/2-h.x;
