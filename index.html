@@ -191,30 +191,44 @@ function loadLevel(){
 
 
 async function startGame(){
- levelIndex=0;
- score=0;
- lives=3;
- loadLevel();
+  if (running) return;
 
- $("menu").classList.add("hidden");
- $("hud").classList.remove("hidden");
- $("controls").classList.remove("hidden");
+  levelIndex = 0;
+  score = 0;
+  lives = 3;
+  keys.left = false;
+  keys.right = false;
+  jumpPressed = false;
 
- running=true;
+  loadLevel();
 
- try{
-  if(!document.fullscreenElement){
-   await document.documentElement.requestFullscreen();
+  $("menu").classList.add("hidden");
+  $("startPanel").classList.remove("hidden");
+  $("ending").classList.add("hidden");
+  $("hud").classList.remove("hidden");
+  $("controls").classList.remove("hidden");
+
+  running = true;
+
+  // Iniciar el juego aunque el navegador no permita
+  // pantalla completa o bloquear la orientación.
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (e) {
+    console.log("Pantalla completa no disponible.");
   }
-  if(screen.orientation && screen.orientation.lock){
-   await screen.orientation.lock("landscape");
-  }
- }catch(e){
-  // Si el navegador no permite bloquear la orientación,
-  // el juego seguirá funcionando normalmente.
- }
 
- requestAnimationFrame(loop);
+  try {
+    if (screen.orientation?.lock) {
+      await screen.orientation.lock("landscape");
+    }
+  } catch (e) {
+    console.log("Rotación automática no disponible.");
+  }
+
+  if (running) requestAnimationFrame(loop);
 }
 
 
@@ -510,9 +524,17 @@ function update(){
 
 
 function loop(){
- if(!running)return;
- update();draw();
- requestAnimationFrame(loop);
+  if (!running) return;
+
+  try {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  } catch (error) {
+    running = false;
+    console.error("Error del juego:", error);
+    alert("El juego encontró un error. Revisá la consola para ver los detalles.");
+  }
 }
 
 function hold(id,key){
