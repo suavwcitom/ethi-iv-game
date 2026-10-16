@@ -175,15 +175,34 @@ function loadLevel(){
 }
 
 
-function startGame(){
- levelIndex=0;score=0;lives=3;
+
+async function startGame(){
+ levelIndex=0;
+ score=0;
+ lives=3;
  loadLevel();
+
  $("menu").classList.add("hidden");
  $("hud").classList.remove("hidden");
  $("controls").classList.remove("hidden");
+
  running=true;
+
+ try{
+  if(!document.fullscreenElement){
+   await document.documentElement.requestFullscreen();
+  }
+  if(screen.orientation && screen.orientation.lock){
+   await screen.orientation.lock("landscape");
+  }
+ }catch(e){
+  // Si el navegador no permite bloquear la orientación,
+  // el juego seguirá funcionando normalmente.
+ }
+
  requestAnimationFrame(loop);
 }
+
 
 function endGame(){
  running=false;
@@ -509,10 +528,7 @@ window.addEventListener("keyup",e=>{
  if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
 });
 
-$("start").onclick=()=>{
- alert("¡EL BOTÓN FUNCIONA!");
- startGame();
-};
+$("start").onclick=startGame;
 $("again").onclick=()=>{
  $("ending").classList.add("hidden");
  $("startPanel").classList.remove("hidden");
