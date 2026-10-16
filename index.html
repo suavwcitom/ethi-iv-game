@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ethi ♡ Iv</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#100d19;color:#fff;font-family:monospace;overflow:hidden;touch-action:none}
+#game{width:100vw;height:100dvh;display:block;image-rendering:pixelated}
+#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.pill,button{background:#29172e;color:#ffe1ed;border:2px solid #f4a5c5;padding:10px;border-radius:8px;font-weight:bold}
+#tools{position:fixed;right:10px;top:62px;display:flex;gap:6px}
+#controls{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;align-items:end}
+.group{display:flex;gap:12px}
+.ctrl{width:65px;height:65px;font-size:24px;background:#49233eaa;touch-action:none;user-select:none}
+#jump{width:78px;height:78px;border-radius:50%;background:#a33e76dd}
+#overlay{position:fixed;inset:0;background:#100d19ed;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px}
+.panel{max-width:440px;width:100%;border:3px solid #f4a5c5;background:#25162c;padding:26px;border-radius:15px;box-shadow:0 0 35px #d34c8c44}
+h1{color:#ffb5d2;font-size:clamp(27px,7vw,43px)}
+p{line-height:1.7;color:#ffe6f0}
+.main{background:#b94780;color:white;font-size:17px;padding:14px 20px}
+.hidden{display:none!important}
+small{color:#e9bad1}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+ <div class="pill" id="level">♡ NIVEL 1</div>
+ <div class="pill" id="hearts">♥ 0</div>
+</div>
+<div id="tools">
+ <button id="full">⛶</button>
+ <button id="rotate">↻</button>
+</div>
+
+<div id="controls">
+ <div class="group">
+  <button class="ctrl" id="left">◀</button>
+  <button class="ctrl" id="right">▶</button>
+ </div>
+ <button class="ctrl" id="jump">↑</button>
+</div>
+
+<div id="overlay">
+ <div class="panel" id="panel">
+  <div style="font-size:40px">💌</div>
+  <h1>ETHI ♡ IV</h1>
+  <p>Un pequeño mundo pixelado hecho para nosotros.</p>
+  <p>Superá los obstáculos, recogé los corazones y encontrá a tu chico.</p>
+  <p><small>3 niveles · Dificultad extrema · Final secreto</small></p>
+  <button class="main" id="start">EMPEZAR AVENTURA ♡</button>
+ </div>
+</div>
+
+<script>
+const canvas=document.querySelector("#game");
+const ctx=canvas.getContext("2d");
+let W=innerWidth,H=innerHeight;
+function resize(){
+ W=canvas.width=innerWidth;
+ H=canvas.height=innerHeight;
+}
+addEventListener("resize",resize);resize();
+
+const player={x:50,y:0,vx:0,vy:0,w:25,h:39,ground:false};
+let camera=0,levelIndex=0,score=0,playing=false,won=false;
+let platforms=[],collectibles=[],goal=0;
+const keys={left:false,right:false,jump:false};
+const gravity=.55,speed=3.4;
+const levelLengths=[2200,2900,3600];
+
+function buildLevel(){
+ const len=levelLengths[levelIndex];
+ platforms=[{x:0,y:H*.78,w:260,h:100}];
+ let x=260;
+ let gap=0;
+ while(x<len-180){
+  gap=levelIndex===0?35+Math.random()*65:55+Math.random()*100;
+  const pw=levelIndex===0?100+Math.random()*110:70+Math.random()*115;
+  const py=H*(.58+Math.random()*.19);
+  platforms.push({x:x+gap,y:py,w:pw,h:22});
+  x+=gap+pw;
+ }
+ platforms.push({x:len-130,y:H*.78,w:300,h:100});
+ goal=len;
+ collectibles=[];
+ for(let i=0;i<Math.floor(len/125);i++){
+  const p=platforms[1+Math.floor(Math.random()*(platforms.length-2))];
+  collectibles.push({x:p.x+p.w/2,y:p.y-27,taken:false});
+ }
+ player.x=45;player.y=H*.45;player.vx=0;player.vy=0;
+ camera=0;
+ document.querySelector("#level").textContent="♡ NIVEL "+(levelIndex+1);
+}
+function rect(x,y,w,h,c){
+ ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);
+}
+function drawHeart(x,y,size){
+ ctx.fillStyle="#ff6da9";
+ ctx.fillRect(x+size*.15,y,size*.3,size*.3);
+ ctx.fillRect(x+size*.55,y,size*.3,size*.3);
+ ctx.fillRect(x,y+size*.2,size*.45,size*.3);
+ ctx.fillRect(x+size*.55,y+size*.2,size*.45,size*.3);
+ ctx.fillRect(x+size*.2,y+size*.4,size*.6,size*.25);
+ ctx.fillRect(x+size*.35,y+size*.65,size*.3,size*.2);
+}
+function drawBoy(x,y,shirt,trousers,back=false){
+ // Pixel character inspired by the supplied sprites
+ const s=1.35;
+ ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(s,s);
+ // legs and shoes
+ rect(5,23,7,12,trousers);rect(16,23,7,12,trousers);
+ rect(3,34,10,3,"#eee0e8");rect(15,34,10,3,"#eee0e8");
+ // arms
+ rect(1,13,5,11,"#f5c2ad");rect(23,13,5,11,"#f5c2ad");
+ // body
+ rect(5,12,18,15,shirt);
+ rect(7,10,14,3,shirt);
+ // head
+ rect(6,1,16,12,"#f6c8b6");
+ rect(4,4,20,8,"#f6c8b6");
+ // hair
+ rect(4,0,19,5,"#29242d");rect(2,3,5,9,"#29242d");
+ rect(20,3,5,8,"#29242d");rect(6,1,4,7,"#302832");
+ rect(11,0,4,8,"#302832");rect(16,1,4,7,"#302832");
+ if(!back){
+  rect(8,7,4,3,"#f2f0f4");rect(17,7,4,3,"#f2f0f4");
+  rect(9,8,3,3,"#29212a");rect(18,8,3,3,"#29212a");
+  rect(13,12,5,1,"#b86d83");
+ }
+ ctx.restore();
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ // night sky
+ const g=ctx.createLinearGradient(0,0,0,H);
+ g.addColorStop(0,"#19142e");g.addColorStop(1,"#633052");
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ // pixel stars
+ for(let i=0;i<60;i++){
+  let sx=((i*137-camera*.12)%(W+20)+W+20)%(W+20);
+  rect(sx,(i*71)%Math.max(100,H*.65),2,2,"#ffdce9");
+ }
+ // moon
+ rect(W-80,75,30,30,"#ffdfeb");
+ rect(W-68,65,30,30,"#19142e");
+ ctx.save();ctx.translate(-camera,0);
+ for(const p of platforms){
+  rect(p.x,p.y,p.w,p.h,"#39243c");
+  rect(p.x,p.y,p.w,6,"#e58bb8");
+  for(let t=10;t<p.w;t+=24)rect(p.x+t,p.y+10,7,3,"#64425d");
+ }
+ for(const c of collectibles){
+  if(!c.taken)drawHeart(c.x,c.y,15);
+ }
+ // flag / destination
+ rect(goal, H*.78-48,4,48,"#ffb6d5");
+ rect(goal+4,H*.78-48,23,15,"#ff6da9");
+ drawBoy(goal+32,H*.78-52,"#f2b5ca","#3475b9");
+ drawBoy(player.x,player.y,"#16151c","#3475b9");
+ ctx.restore();
+ requestAnimationFrame(draw);
+}
+function update(){
+ if(!playing)return;
+ player.vx=(keys.right?speed:0)-(keys.left?speed:0);
+ player.x+=player.vx;
+ player.vy+=gravity;player.y+=player.vy;
+ player.ground=false;
+ for(const p of platforms){
+  if(player.x+player.w>p.x&&player.x<p.x+p.w&&
+     player.y+player.h>=p.y&&player.y+player.h<=p.y+Math.max(18,player.vy+8)&&player.vy>=0){
+   player.y=p.y-player.h;player.vy=0;player.ground=true;
+  }
+ }
+ if(keys.jump&&player.ground){player.vy=-10.8;player.ground=false;}
+ if(player.y>H+100){
+  player.x=Math.max(25,player.x-120);player.y=H*.3;player.vy=0;
+ }
+ for(const c of collectibles){
+  if(!c.taken&&Math.abs(player.x-c.x)<24&&Math.abs(player.y-c.y)<35){
+   c.taken=true;score++;
+   document.querySelector("#hearts").textContent="♥ "+score;
+  }
+ }
+ camera=Math.max(0,Math.min(player.x-W*.35,goal-W*.7));
+ if(player.x>goal+10)nextLevel();
+ requestAnimationFrame(update);
+}
+function nextLevel(){
+ if(levelIndex<2){
+  levelIndex++;buildLevel();
+ }else{
+  playing=false;won=true;
+  document.querySelector("#panel").innerHTML=`
+   <div style="font-size:40px">💗💌💗</div>
+   <h1>LO LOGRASTE, ETHI</h1>
+   <p>Encontraste a Iv. Pero el verdadero premio siempre fue poder compartir este pequeño mundo con él.</p>
+   <p>♡ Para Iv ♡</p>
+   <p>Gracias por ser parte de mi historia. Si pudiera crear mil mundos, en todos buscaría la forma de encontrarte. No importa cuántos obstáculos haya: siempre voy a querer llegar hasta vos.</p>
+   <p>Con amor, Ethi. ♡</p>
+   <button class="main" onclick="restart()">VOLVER A JUGAR</button>`;
+  document.querySelector("#overlay").classList.remove("hidden");
+ }
+}
+function restart(){
+ levelIndex=0;score=0;won=false;
+ document.querySelector("#hearts").textContent="♥ 0";
+ document.querySelector("#panel").innerHTML=`
+ <div style="font-size:40px">💌</div><h1>ETHI ♡ IV</h1>
+ <p>Volvé a recorrer el mundo de ustedes.</p>
+ <button class="main" id="start">EMPEZAR AVENTURA ♡</button>`;
+ document.querySelector("#overlay").classList.remove("hidden");
+ document.querySelector("#start").onclick=startGame;
+}
+function startGame(){
+ document.querySelector("#overlay").classList.add("hidden");
+ levelIndex=0;score=0;playing=true;
+ document.querySelector("#hearts").textContent="♥ 0";
+ buildLevel();update();
+}
+document.querySelector("#start").onclick=startGame;
+function bind(id,key){
+ const el=document.getElementById(id);
+ el.addEventListener("pointerdown",e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});
+ for(const ev of ["pointerup","pointercancel","lostpointercapture"])
+  el.addEventListener(ev,()=>keys[key]=false);
+}
+bind("left","left");bind("right","right");bind("jump","jump");
+addEventListener("keydown",e=>{
+ if(["ArrowLeft","a","ArrowRight","d"," ","ArrowUp","w"].includes(e.key))e.preventDefault();
+ if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;
+ if(e.key==="ArrowRight"||e.key==="d")keys.right=true;
+ if(e.key===" "||e.key==="ArrowUp"||e.key==="w")keys.jump=true;
+});
+addEventListener("keyup",e=>{
+ if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;
+ if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
+ if(e.key===" "||e.key==="ArrowUp"||e.key==="w")keys.jump=false;
+});
+document.querySelector("#full").onclick=async()=>{
+ try{
+  if(!document.fullscreenElement)await document.documentElement.requestFullscreen();
+  else await document.exitFullscreen();
+ }catch(e){alert("Tu navegador no permite pantalla completa aquí.");}
+};
+document.querySelector("#rotate").onclick=async()=>{
+ try{await screen.orientation.lock("landscape");}
+ catch(e){alert("Giralo desde los ajustes rápidos de tu celular ♡");}
+};
+buildLevel();draw();
+</script>
+</body>
+</html>
