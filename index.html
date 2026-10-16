@@ -3,256 +3,251 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Ethi ♡ Iv</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#180e20">
+<title>ETHI × IV — Love Hub ♡</title>
 <style>
+:root{--bg:#180e20;--panel:#28162f;--pink:#ff91bd;--cream:#fff0e8;--muted:#c9adc9;--line:#58334f}
 *{box-sizing:border-box}
-body{margin:0;background:#100d19;color:#fff;font-family:monospace;overflow:hidden;touch-action:none}
-#game{width:100vw;height:100dvh;display:block;image-rendering:pixelated}
-#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
-.pill,button{background:#29172e;color:#ffe1ed;border:2px solid #f4a5c5;padding:10px;border-radius:8px;font-weight:bold}
-#tools{position:fixed;right:10px;top:62px;display:flex;gap:6px}
-#controls{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;align-items:end}
-.group{display:flex;gap:12px}
-.ctrl{width:65px;height:65px;font-size:24px;background:#49233eaa;touch-action:none;user-select:none}
-#jump{width:78px;height:78px;border-radius:50%;background:#a33e76dd}
-#overlay{position:fixed;inset:0;background:#100d19ed;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px}
-.panel{max-width:440px;width:100%;border:3px solid #f4a5c5;background:#25162c;padding:26px;border-radius:15px;box-shadow:0 0 35px #d34c8c44}
-h1{color:#ffb5d2;font-size:clamp(27px,7vw,43px)}
-p{line-height:1.7;color:#ffe6f0}
-.main{background:#b94780;color:white;font-size:17px;padding:14px 20px}
-.hidden{display:none!important}
-small{color:#e9bad1}
+body{margin:0;background:radial-gradient(ellipse at top,#512546,transparent 48%),var(--bg);color:var(--cream);font-family:system-ui,sans-serif}
+button{font:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:#180e20ee;backdrop-filter:blur(12px);padding:15px 5%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff15}
+.logo{font-weight:1000;letter-spacing:2px}.logo span{color:var(--pink)}
+nav{display:flex;gap:8px}
+nav button,.outline{background:transparent;border:1px solid var(--line);color:white;padding:9px 12px;border-radius:30px}
+main{max-width:1050px;margin:auto;padding:24px 16px 60px}
+.hero{min-height:400px;border:1px solid #ffffff19;border-radius:25px;background:linear-gradient(145deg,#512544,#25132e 65%,#321b39);display:grid;place-items:center;text-align:center;padding:28px 18px;position:relative;overflow:hidden}
+.hero:before,.hero:after{content:"♡";position:absolute;color:#ff91bd19;font-size:170px}
+.hero:before{left:-20px;top:-45px}.hero:after{right:-20px;bottom:-85px}
+.hero-content{position:relative;z-index:1}
+.heart{font-size:55px;color:var(--pink);text-shadow:0 0 25px #ff91bd66;animation:float 2s infinite ease-in-out}
+.eyebrow{font-size:11px;letter-spacing:4px;color:#ffc1d8;font-weight:800}
+h1{font-size:clamp(43px,9vw,85px);line-height:1;margin:18px 0;letter-spacing:-4px}
+h1 span{color:var(--pink)}
+.hero p{max-width:450px;margin:0 auto 23px;color:var(--muted);line-height:1.7}
+.primary{background:var(--pink);color:#35142a;border:0;padding:13px 19px;border-radius:30px;font-weight:900}
+.primary:active{transform:scale(.97)}
+.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:34px 3px 15px}
+h2{font-size:23px;margin:0}.sectionhead p,.muted{font-size:13px;color:var(--muted);line-height:1.6}
+.progress{font-size:12px;color:var(--pink);text-align:right;min-width:105px}
+.bar{height:5px;background:#ffffff18;border-radius:9px;margin-top:8px;overflow:hidden}
+.bar div{height:100%;width:0;background:var(--pink);transition:.3s}
+.games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.card{background:linear-gradient(145deg,#321b39,#23132b);border:1px solid var(--line);border-radius:19px;padding:18px;min-height:230px;display:flex;flex-direction:column;align-items:flex-start}
+.card.done{border-color:#a6eac0}
+.num{font-size:11px;letter-spacing:2px;color:var(--pink);font-weight:900}
+.gameicon{font-size:38px;margin:15px 0 7px}
+.card h3{margin:0 0 7px;font-size:18px}
+.card p{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 18px}
+.card button{margin-top:auto}
+.letterbox{margin-top:17px;padding:22px;border:1px solid #ff91bd66;border-radius:20px;background:linear-gradient(110deg,#48213f,#281630);display:flex;align-items:center;justify-content:space-between;gap:15px}
+.letterbox p{color:var(--muted);font-size:13px;line-height:1.5}
+footer{text-align:center;color:#a487a5;font-size:12px;padding:30px 0}
+.modal{position:fixed;inset:0;z-index:20;background:#08050be8;display:none;align-items:center;justify-content:center;padding:12px}
+.modal.open{display:flex}
+.dialog{width:min(650px,100%);max-height:92dvh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:23px;padding:18px}
+.dialoghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.dialoghead h2{font-size:21px}
+.close{background:transparent;border:1px solid var(--line);color:white;border-radius:50%;width:38px;height:38px;font-size:23px}
+.field{background:#130b19;border:1px solid #58334f;border-radius:15px;padding:14px}
+.status{display:flex;justify-content:space-between;color:#ffc1d8;font-size:13px;margin-bottom:12px;gap:10px}
+.memory{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{aspect-ratio:1;background:#38203e;border:1px solid #704265;border-radius:12px;color:#ffc1d8;font-size:26px}
+.tile.opened{background:#58304f}.tile.matched{background:#234436;border-color:#9de6b6}
+.controls{display:flex;justify-content:center;gap:10px;margin-top:12px}
+.controls button{min-width:58px;min-height:48px;background:#38203e;border:1px solid var(--line);color:white;border-radius:13px;touch-action:manipulation}
+.controls .primary{background:var(--pink);color:#35142a}
+.track{height:220px;position:relative;overflow:hidden;background:radial-gradient(#ffffff35 1px,transparent 1px),linear-gradient(#21122e,#110b19);background-size:25px 25px;border-radius:12px}
+.ground{position:absolute;bottom:0;height:25px;width:100%;background:repeating-linear-gradient(90deg,#73416b 0 20px,#492744 20px 40px);border-top:3px solid #ad6793}
+.player{position:absolute;bottom:25px;left:5%;font-size:27px;transition:left .12s}
+.goal{position:absolute;bottom:25px;right:5%;font-size:27px}
+.pickup{position:absolute;bottom:65px;font-size:23px}
+.taparea{height:190px;display:grid;place-items:center}
+.tapheart{background:transparent;border:0;font-size:65px;touch-action:manipulation}
+.letter{background:#fff0e8;color:#4a263e;padding:22px;border-radius:14px;line-height:1.8;white-space:pre-line}
+.letter h2{font-family:Georgia,serif;font-size:27px;margin-bottom:15px}
+.toast{position:fixed;z-index:30;bottom:20px;left:50%;transform:translateX(-50%);background:#fff0e8;color:#35142a;padding:12px 17px;border-radius:30px;font-weight:800;display:none;white-space:nowrap}
+.toast.show{display:block}
+@keyframes float{50%{transform:translateY(-8px)}}
+@media(max-width:680px){.games{grid-template-columns:1fr}.card{min-height:190px}.hero{min-height:350px}header{padding:12px}.logo{font-size:13px}nav button{font-size:11px;padding:8px}.sectionhead{align-items:flex-start}.letterbox{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
-<canvas id="game"></canvas>
+<header>
+ <div class="logo">ETHI <span>×</span> IV ♡</div>
+ <nav>
+  <button onclick="scrollGames()">JUEGOS</button>
+  <button onclick="openLetter()">CARTA ✉</button>
+ </nav>
+</header>
 
-<div id="hud">
- <div class="pill" id="level">♡ NIVEL 1</div>
- <div class="pill" id="hearts">♥ 0</div>
-</div>
-<div id="tools">
- <button id="full">⛶</button>
- <button id="rotate">↻</button>
-</div>
-
-<div id="controls">
- <div class="group">
-  <button class="ctrl" id="left">◀</button>
-  <button class="ctrl" id="right">▶</button>
+<main>
+<section class="hero">
+ <div class="hero-content">
+  <div class="heart">♥</div>
+  <div class="eyebrow">A LITTLE WORLD FOR US</div>
+  <h1>ETHI <span>×</span> IV</h1>
+  <p>Un pequeño universo hecho para vos. Tres desafíos, muchos corazones y una sorpresa que espera al final. ¿Aceptás la misión?</p>
+  <button class="primary" onclick="scrollGames()">COMENZAR AVENTURA ↗</button>
  </div>
- <button class="ctrl" id="jump">↑</button>
+</section>
+
+<div class="sectionhead" id="games">
+ <div><h2>Choose your quest ♡</h2><p>Completá los tres desafíos para desbloquear tu regalo.</p></div>
+ <div class="progress"><span id="progressText">0 / 3</span><div class="bar"><div id="progressBar"></div></div></div>
 </div>
 
-<div id="overlay">
- <div class="panel" id="panel">
-  <div style="font-size:40px">💌</div>
-  <h1>ETHI ♡ IV</h1>
-  <p>Un pequeño mundo pixelado hecho para nosotros.</p>
-  <p>Superá los obstáculos, recogé los corazones y encontrá a tu chico.</p>
-  <p><small>3 niveles · Dificultad extrema · Final secreto</small></p>
-  <button class="main" id="start">EMPEZAR AVENTURA ♡</button>
+<section class="games">
+ <article class="card" id="card-run">
+  <div class="num">01 / ADVENTURE</div><div class="gameicon">🌙</div>
+  <h3>Moonlight Run</h3><p>Recorré el camino nocturno, atrapá cinco corazones y llegá hasta Iv.</p>
+  <button class="primary" onclick="startRun()">Jugar ahora ↗</button>
+ </article>
+ <article class="card" id="card-memory">
+  <div class="num">02 / MEMORY</div><div class="gameicon">🃏</div>
+  <h3>Match my heart</h3><p>Encontrá las ocho parejas. ¿Qué tan buena es tu memoria?</p>
+  <button class="primary" onclick="startMemory()">Jugar ahora ↗</button>
+ </article>
+ <article class="card" id="card-rush">
+  <div class="num">03 / SPEED</div><div class="gameicon">💗</div>
+  <h3>Heart Rush</h3><p>Atrapá quince corazones antes de que terminen los veinte segundos.</p>
+  <button class="primary" onclick="startRush()">Jugar ahora ↗</button>
+ </article>
+</section>
+
+<section class="letterbox">
+ <div><h3 style="margin:0">✉ A message for you</h3><p id="letterHint">La carta está cerrada. Completá los tres juegos para abrirla.</p></div>
+ <button class="primary" id="letterButton" onclick="openLetter()">🔒 Bloqueada</button>
+</section>
+<footer>made with ♡ by Ethi, only for Iv</footer>
+</main>
+
+<div class="modal" id="modal">
+ <div class="dialog">
+  <div class="dialoghead"><h2 id="modalTitle">Mini game</h2><button class="close" onclick="closeModal()">×</button></div>
+  <div id="content"></div>
  </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
-const canvas=document.querySelector("#game");
-const ctx=canvas.getContext("2d");
-let W=innerWidth,H=innerHeight;
-function resize(){
- W=canvas.width=innerWidth;
- H=canvas.height=innerHeight;
-}
-addEventListener("resize",resize);resize();
+const done={run:false,memory:false,rush:false};
+const $=id=>document.getElementById(id);
+let pos=5,collected=0,mem={},rush=0,seconds=20,timer=null,busy=false;
 
-const player={x:50,y:0,vx:0,vy:0,w:25,h:39,ground:false};
-let camera=0,levelIndex=0,score=0,playing=false,won=false;
-let platforms=[],collectibles=[],goal=0;
-const keys={left:false,right:false,jump:false};
-const gravity=.55,speed=3.4;
-const levelLengths=[2200,2900,3600];
+function scrollGames(){$('games').scrollIntoView({behavior:'smooth'})}
+function notify(message){$('toast').textContent=message;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2100)}
+function show(title,html){$('modalTitle').textContent=title;$('content').innerHTML=html;$('modal').classList.add('open')}
+function closeModal(){clearInterval(timer);timer=null;$('modal').classList.remove('open')}
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+document.addEventListener('keydown',e=>{if(!$('modal').classList.contains('open'))return;if(e.key==='ArrowLeft')move(-1);if(e.key==='ArrowRight')move(1);if(e.key==='Escape')closeModal()});
 
-function buildLevel(){
- const len=levelLengths[levelIndex];
- platforms=[{x:0,y:H*.78,w:260,h:100}];
- let x=260;
- let gap=0;
- while(x<len-180){
-  gap=levelIndex===0?35+Math.random()*65:55+Math.random()*100;
-  const pw=levelIndex===0?100+Math.random()*110:70+Math.random()*115;
-  const py=H*(.58+Math.random()*.19);
-  platforms.push({x:x+gap,y:py,w:pw,h:22});
-  x+=gap+pw;
+function finish(key){
+ if(done[key])return;
+ done[key]=true;
+ $('card-'+key).classList.add('done');
+ const n=Object.values(done).filter(Boolean).length;
+ $('progressText').textContent=n+' / 3';
+ $('progressBar').style.width=(n/3*100)+'%';
+ if(n===3){
+  $('letterHint').textContent='¡Lo lograste! Tu sorpresa ya está lista.';
+  $('letterButton').textContent='Abrir mi carta 💌';
+  notify('¡Desbloqueaste la carta secreta! ♡');
  }
- platforms.push({x:len-130,y:H*.78,w:300,h:100});
- goal=len;
- collectibles=[];
- for(let i=0;i<Math.floor(len/125);i++){
-  const p=platforms[1+Math.floor(Math.random()*(platforms.length-2))];
-  collectibles.push({x:p.x+p.w/2,y:p.y-27,taken:false});
- }
- player.x=45;player.y=H*.45;player.vx=0;player.vy=0;
- camera=0;
- document.querySelector("#level").textContent="♡ NIVEL "+(levelIndex+1);
 }
-function rect(x,y,w,h,c){
- ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);
+
+function startRun(){
+ pos=5;collected=0;
+ show('Moonlight Run',`
+ <div class="field"><div class="status"><span>♥ Corazones: <b id="count">0</b>/5</span><span>Llegá al final →</span></div>
+ <div class="track"><div class="player" id="player">🧑🏻</div><div class="goal">🧑🏻‍🤝‍🧑🏻</div><div class="pickup" id="pickup" style="left:25%">💗</div><div class="ground"></div></div>
+ <p class="muted">Usá las flechas o los botones. Juntá cinco corazones y alcanzá a Iv.</p></div>
+ <div class="controls"><button onclick="move(-1)">←</button><button onclick="move(1)">→</button><button class="primary" onclick="startRun()">Reiniciar</button></div>`);
 }
-function drawHeart(x,y,size){
- ctx.fillStyle="#ff6da9";
- ctx.fillRect(x+size*.15,y,size*.3,size*.3);
- ctx.fillRect(x+size*.55,y,size*.3,size*.3);
- ctx.fillRect(x,y+size*.2,size*.45,size*.3);
- ctx.fillRect(x+size*.55,y+size*.2,size*.45,size*.3);
- ctx.fillRect(x+size*.2,y+size*.4,size*.6,size*.25);
- ctx.fillRect(x+size*.35,y+size*.65,size*.3,size*.2);
+function move(direction){
+ if(!$('player'))return;
+ pos=Math.max(3,Math.min(90,pos+direction*8));
+ $('player').style.left=pos+'%';
+ const pickup=$('pickup');
+ if(pickup&&Math.abs(pos-parseFloat(pickup.style.left))<9){
+  collected++;$('count').textContent=collected;
+  pickup.style.left=(12+Math.random()*68)+'%';
+  if(collected>=5)pickup.textContent='✨';
+ }
+ if(pos>=84){
+  if(collected>=5){
+   finish('run');
+   $('content').innerHTML='<div class="field" style="text-align:center;padding:35px"><div style="font-size:45px">🌙💗</div><h3>¡Llegaste hasta Iv!</h3><p>El camino valió la pena ♡</p><button class="primary" onclick="closeModal()">Volver al hub</button></div>';
+  }else notify('¡Todavía te faltan corazones! 💗');
+ }
 }
-function drawBoy(x,y,shirt,trousers,back=false){
- // Pixel character inspired by the supplied sprites
- const s=1.35;
- ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(s,s);
- // legs and shoes
- rect(5,23,7,12,trousers);rect(16,23,7,12,trousers);
- rect(3,34,10,3,"#eee0e8");rect(15,34,10,3,"#eee0e8");
- // arms
- rect(1,13,5,11,"#f5c2ad");rect(23,13,5,11,"#f5c2ad");
- // body
- rect(5,12,18,15,shirt);
- rect(7,10,14,3,shirt);
- // head
- rect(6,1,16,12,"#f6c8b6");
- rect(4,4,20,8,"#f6c8b6");
- // hair
- rect(4,0,19,5,"#29242d");rect(2,3,5,9,"#29242d");
- rect(20,3,5,8,"#29242d");rect(6,1,4,7,"#302832");
- rect(11,0,4,8,"#302832");rect(16,1,4,7,"#302832");
- if(!back){
-  rect(8,7,4,3,"#f2f0f4");rect(17,7,4,3,"#f2f0f4");
-  rect(9,8,3,3,"#29212a");rect(18,8,3,3,"#29212a");
-  rect(13,12,5,1,"#b86d83");
- }
- ctx.restore();
+
+function startMemory(){
+ const symbols=['💗','🌙','🍓','🧸','🎀','✨','💌','🫶'];
+ mem={deck:[...symbols,...symbols].sort(()=>Math.random()-.5),open:[],matched:[],moves:0,locked:false};
+ renderMemory();
 }
-function draw(){
- ctx.clearRect(0,0,W,H);
- // night sky
- const g=ctx.createLinearGradient(0,0,0,H);
- g.addColorStop(0,"#19142e");g.addColorStop(1,"#633052");
- ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- // pixel stars
- for(let i=0;i<60;i++){
-  let sx=((i*137-camera*.12)%(W+20)+W+20)%(W+20);
-  rect(sx,(i*71)%Math.max(100,H*.65),2,2,"#ffdce9");
- }
- // moon
- rect(W-80,75,30,30,"#ffdfeb");
- rect(W-68,65,30,30,"#19142e");
- ctx.save();ctx.translate(-camera,0);
- for(const p of platforms){
-  rect(p.x,p.y,p.w,p.h,"#39243c");
-  rect(p.x,p.y,p.w,6,"#e58bb8");
-  for(let t=10;t<p.w;t+=24)rect(p.x+t,p.y+10,7,3,"#64425d");
- }
- for(const c of collectibles){
-  if(!c.taken)drawHeart(c.x,c.y,15);
- }
- // flag / destination
- rect(goal, H*.78-48,4,48,"#ffb6d5");
- rect(goal+4,H*.78-48,23,15,"#ff6da9");
- drawBoy(goal+32,H*.78-52,"#f2b5ca","#3475b9");
- drawBoy(player.x,player.y,"#16151c","#3475b9");
- ctx.restore();
- requestAnimationFrame(draw);
+function renderMemory(){
+ show('Match my heart',`<div class="field"><div class="status"><span>Parejas: <b>${mem.matched.length/2}</b>/8</span><span>Intentos: ${mem.moves}</span></div><div class="memory">${
+ mem.deck.map((v,i)=>`<button class="tile ${mem.matched.includes(i)?'matched':''} ${mem.open.includes(i)?'opened':''}" onclick="flip(${i})">${mem.matched.includes(i)||mem.open.includes(i)?v:'♡'}</button>`).join('')
+ }</div></div><p class="muted">Encontrá todas las parejas para ganar.</p>`);
 }
-function update(){
- if(!playing)return;
- player.vx=(keys.right?speed:0)-(keys.left?speed:0);
- player.x+=player.vx;
- player.vy+=gravity;player.y+=player.vy;
- player.ground=false;
- for(const p of platforms){
-  if(player.x+player.w>p.x&&player.x<p.x+p.w&&
-     player.y+player.h>=p.y&&player.y+player.h<=p.y+Math.max(18,player.vy+8)&&player.vy>=0){
-   player.y=p.y-player.h;player.vy=0;player.ground=true;
+function flip(i){
+ if(mem.locked||mem.open.includes(i)||mem.matched.includes(i))return;
+ mem.open.push(i);
+ if(mem.open.length===2){
+  mem.moves++;
+  const [a,b]=mem.open;
+  if(mem.deck[a]===mem.deck[b]){
+   mem.matched.push(a,b);mem.open=[];
+   if(mem.matched.length===16){
+    finish('memory');
+    show('¡Memoria perfecta!','<div class="field" style="text-align:center;padding:30px"><div style="font-size:45px">🃏💞</div><h3>Encontraste todas las parejas.</h3><button class="primary" onclick="closeModal()">Volver al hub</button></div>');
+    return;
+   }
+   renderMemory();
+  }else{
+   mem.locked=true;renderMemory();
+   setTimeout(()=>{mem.open=[];mem.locked=false;renderMemory()},750);
   }
- }
- if(keys.jump&&player.ground){player.vy=-10.8;player.ground=false;}
- if(player.y>H+100){
-  player.x=Math.max(25,player.x-120);player.y=H*.3;player.vy=0;
- }
- for(const c of collectibles){
-  if(!c.taken&&Math.abs(player.x-c.x)<24&&Math.abs(player.y-c.y)<35){
-   c.taken=true;score++;
-   document.querySelector("#hearts").textContent="♥ "+score;
+ }else renderMemory();
+}
+
+function startRush(){
+ clearInterval(timer);rush=0;seconds=20;
+ show('Heart Rush',`<div class="field"><div class="status"><span>Corazones: <b id="rushCount">0</b>/15</span><span>Tiempo: <b id="seconds">20</b>s</span></div><div class="taparea"><button class="tapheart" id="tapHeart" onclick="tap()">💗</button></div><p class="muted" style="text-align:center">Tocá el corazón quince veces antes de que termine el tiempo.</p></div><div class="controls"><button class="primary" onclick="startRush()">Volver a intentar</button></div>`);
+ timer=setInterval(()=>{
+  seconds--;
+  if($('seconds'))$('seconds').textContent=seconds;
+  if(seconds<=0){
+   clearInterval(timer);timer=null;
+   if(rush<15)$('content').insertAdjacentHTML('beforeend','<p style="text-align:center;color:var(--pink)">¡Se acabó el tiempo! Intentá de nuevo ♡</p>');
   }
- }
- camera=Math.max(0,Math.min(player.x-W*.35,goal-W*.7));
- if(player.x>goal+10)nextLevel();
- requestAnimationFrame(update);
+ },1000);
 }
-function nextLevel(){
- if(levelIndex<2){
-  levelIndex++;buildLevel();
- }else{
-  playing=false;won=true;
-  document.querySelector("#panel").innerHTML=`
-   <div style="font-size:40px">💗💌💗</div>
-   <h1>LO LOGRASTE, ETHI</h1>
-   <p>Encontraste a Iv. Pero el verdadero premio siempre fue poder compartir este pequeño mundo con él.</p>
-   <p>♡ Para Iv ♡</p>
-   <p>Gracias por ser parte de mi historia. Si pudiera crear mil mundos, en todos buscaría la forma de encontrarte. No importa cuántos obstáculos haya: siempre voy a querer llegar hasta vos.</p>
-   <p>Con amor, Ethi. ♡</p>
-   <button class="main" onclick="restart()">VOLVER A JUGAR</button>`;
-  document.querySelector("#overlay").classList.remove("hidden");
+function tap(){
+ if(rush>=15||seconds<=0)return;
+ rush++;$('rushCount').textContent=rush;
+ $('tapHeart').textContent=['💗','💖','💕','💘','💝'][Math.floor(Math.random()*5)];
+ if(rush>=15){
+  clearInterval(timer);timer=null;finish('rush');
+  $('content').innerHTML='<div class="field" style="text-align:center;padding:35px"><div style="font-size:48px">💞</div><h3>¡Desafío superado!</h3><p>¡Tu corazón fue más rápido!</p><button class="primary" onclick="closeModal()">Volver al hub</button></div>';
  }
 }
-function restart(){
- levelIndex=0;score=0;won=false;
- document.querySelector("#hearts").textContent="♥ 0";
- document.querySelector("#panel").innerHTML=`
- <div style="font-size:40px">💌</div><h1>ETHI ♡ IV</h1>
- <p>Volvé a recorrer el mundo de ustedes.</p>
- <button class="main" id="start">EMPEZAR AVENTURA ♡</button>`;
- document.querySelector("#overlay").classList.remove("hidden");
- document.querySelector("#start").onclick=startGame;
+
+function openLetter(){
+ if(!Object.values(done).every(Boolean)){notify('Primero completá los tres desafíos ♡');return}
+ show('Una carta para Iv',`<div class="letter"><h2>Para mi Iv ♡</h2>Si estás leyendo esto, significa que llegaste hasta el final. Hice este pequeño mundo pensando en vos.
+
+Cada desafío y cada corazón tienen un poquito de lo que siento. No hace falta que el mundo sea perfecto para que algo sea especial. A veces alcanza con encontrar a alguien con quien compartir las cosas pequeñas, reírse por cualquier tontería y sentirse en casa.
+
+Gracias por ser vos y por formar parte de mi vida. Quiero seguir creando recuerdos, compartir más momentos y descubrir todo lo que todavía nos espera.
+
+Si pudiera elegir otra vez, volvería a elegir conocerte.
+
+Con todo mi cariño,
+<b>Ethi</b> 💌</div><div class="controls"><button class="primary" onclick="closeModal()">Guardar este momento ♡</button></div>`);
 }
-function startGame(){
- document.querySelector("#overlay").classList.add("hidden");
- levelIndex=0;score=0;playing=true;
- document.querySelector("#hearts").textContent="♥ 0";
- buildLevel();update();
-}
-document.querySelector("#start").onclick=startGame;
-function bind(id,key){
- const el=document.getElementById(id);
- el.addEventListener("pointerdown",e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});
- for(const ev of ["pointerup","pointercancel","lostpointercapture"])
-  el.addEventListener(ev,()=>keys[key]=false);
-}
-bind("left","left");bind("right","right");bind("jump","jump");
-addEventListener("keydown",e=>{
- if(["ArrowLeft","a","ArrowRight","d"," ","ArrowUp","w"].includes(e.key))e.preventDefault();
- if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;
- if(e.key==="ArrowRight"||e.key==="d")keys.right=true;
- if(e.key===" "||e.key==="ArrowUp"||e.key==="w")keys.jump=true;
-});
-addEventListener("keyup",e=>{
- if(e.key==="ArrowLeft"||e.key==="a")keys.left=false;
- if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
- if(e.key===" "||e.key==="ArrowUp"||e.key==="w")keys.jump=false;
-});
-document.querySelector("#full").onclick=async()=>{
- try{
-  if(!document.fullscreenElement)await document.documentElement.requestFullscreen();
-  else await document.exitFullscreen();
- }catch(e){alert("Tu navegador no permite pantalla completa aquí.");}
-};
-document.querySelector("#rotate").onclick=async()=>{
- try{await screen.orientation.lock("landscape");}
- catch(e){alert("Giralo desde los ajustes rápidos de tu celular ♡");}
-};
-buildLevel();draw();
 </script>
 </body>
 </html>
