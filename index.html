@@ -127,21 +127,69 @@ const ethiImg = new Image();
 ethiImg.crossOrigin = "anonymous";
 ethiImg.src = "https://drive.google.com/thumbnail?id=1luQGieUa_lBZ7R2Yy6R5C0wZlBEAl_J_&sz=w400";
 
+
 const player = {
  x:60, y:390, w:30, h:42,
  vx:0, vy:0, grounded:false,
- invulnerable:0
+ invulnerable:0,
+ checkpointX:60,
+ checkpointY:428
 };
 
+
+
 function makeLevel(name, length, platformData, hazardData, heartData, goalY=428) {
+ const platforms = platformData.map(p => ({
+  x:p[0], y:p[1], w:p[2], h:p[3]||30
+ }));
+
+ const types = ["spikes","slime","fire","saw"];
+ const hazards = hazardData.map((p,i) => ({
+  x:p[0],
+  y:p[1],
+  w:p[2],
+  h:p[3]||25,
+  type:p[4]||types[i%types.length],
+  phase:i*1.7
+ }));
+
+ const hearts = heartData.map(p => ({
+  x:p[0], y:p[1], got:false
+ }));
+
+ // Si un corazón queda cerca de un obstáculo, lo subimos.
+ for (const heart of hearts) {
+  const danger = hazards.some(h =>
+   heart.x+10 > h.x-12 &&
+   heart.x-10 < h.x+h.w+12 &&
+   heart.y+25 > h.y-12 &&
+   heart.y < h.y+h.h+12
+  );
+
+  if (danger) {
+   const platform = platforms
+    .filter(p => heart.x >= p.x-5 && heart.x <= p.x+p.w+5)
+    .sort((a,b) => Math.abs(a.y-heart.y)-Math.abs(b.y-heart.y))[0];
+
+   if (platform) {
+    heart.y = Math.min(heart.y, platform.y-48);
+   } else {
+    heart.y -= 55;
+   }
+  }
+ }
+
  return {
-  name, length,
-  platforms:platformData.map(p=>({x:p[0],y:p[1],w:p[2],h:p[3]||30})),
-  hazards:hazardData.map(p=>({x:p[0],y:p[1],w:p[2],h:p[3]||25})),
-  hearts:heartData.map(p=>({x:p[0],y:p[1],got:false})),
-  goalX:length-100, goalY
+  name,
+  length,
+  platforms,
+  hazards,
+  hearts,
+  goalX:length-100,
+  goalY
  };
 }
+
 
 const levels = [
  makeLevel("EL BOSQUE DE LOS RECUERDOS",2700,[
@@ -202,18 +250,45 @@ function showToast(message) {
  toastTimer = 100;
 }
 
+
 function loadLevel(index) {
  levelIndex = index;
  level = levels[levelIndex];
+
  player.x = 55;
- player.y = 390;
+ player.y = level.platforms[0].y-player.h;
  player.vx = 0;
  player.vy = 0;
  player.grounded = false;
  player.invulnerable = 70;
+
+ player.checkpointX = player.x;
+ player.checkpointY = player.y;
  camera = 0;
  updateHUD();
 }
+
+function resetAfterHit() {
+ lives--;
+ updateHUD();
+
+ if (lives <= 0) {
+  lives = 3;
+  heartsTotal = 0;
+  updateHUD();
+  showToast("¡Otra oportunidad! Volvé a intentarlo 💗");
+ }
+
+ // Regresa al último lugar seguro, no a una posición aleatoria.
+ player.x = player.checkpointX;
+ player.y = player.checkpointY;
+ player.vx = 0;
+ player.vy = 0;
+ player.grounded = false;
+ player.invulnerable = 100;
+ camera = Math.max(0, Math.min(level.length-W, player.x-W*0.35));
+}
+
 
 function resetAfterHit() {
  lives--;
@@ -254,12 +329,12 @@ function update() {
  }
 
  if (keys.jump && player.grounded) {
-  player.vy = -12.8;
+  player.vy = -14.2;
   player.grounded = false;
  }
  keys.jump = false;
 
- player.vy = Math.min(player.vy + 0.58, 13);
+ player.vy = Math.min(player.vy + 0.52, 12);
  const oldY = player.y;
  const nextY = player.y + player.vy;
  player.grounded = false;
@@ -287,6 +362,20 @@ function update() {
 
  if (player.invulnerable > 0) player.invulnerable--;
 
+if (player.grounded) {
+ const nearDanger = level.hazards.some(h =>
+  player.x+player.w+65 > h.x &&
+  player.x-65 < h.x+h.w &&
+  Math.abs(player.y+player.h-h.y) < 65
+ );
+
+ if (!nearDanger) {
+  player.checkpointX = player.x;
+  player.checkpointY = player.y;
+ }
+}
+
+
  for (const h of level.hearts) {
   if (!h.got && rectsOverlap(
    {x:player.x-5,y:player.y-5,w:player.w+10,h:player.h+10},
@@ -299,14 +388,30 @@ function update() {
   }
  }
 
- if (player.invulnerable <= 0) {
-  for (const h of level.hazards) {
-   if (rectsOverlap(player,h)) {
-    resetAfterHit();
-    break;
-   }
+ 
+if (player.invulnerable <= 0) {
+ for (const h of level.hazards) {
+  const playerHitbox = {
+   x:player.x+6,
+   y:player.y+7,
+   w:player.w-12,
+   h:player.h-7
+  };
+
+  const hazardHitbox = {
+   x:h.x+5,
+   y:h.y+5,
+   w:Math.max(8,h.w-10),
+   h:Math.max(8,h.h-5)
+  };
+
+  if (rectsOverlap(playerHitbox,hazardHitbox)) {
+   resetAfterHit();
+   break;
   }
  }
+}
+
 
  if (player.y > 620) resetAfterHit();
 
@@ -400,31 +505,90 @@ function drawHeart(x,y,size=1) {
  ctx.fillRect(x+s,y+s,s,s);
 }
 
+
 function drawHazard(h) {
  const x = Math.floor(h.x-camera);
- if(x+h.w<0||x>W)return;
- ctx.fillStyle="#321a47";
- ctx.fillRect(x,h.y+h.h-5,h.w,5);
- ctx.fillStyle="#ff77ae";
- const count=Math.max(1,Math.floor(h.w/15));
- for(let i=0;i<count;i++) {
-  const px=x+i*(h.w/count);
+ if (x+h.w<0 || x>W) return;
+
+ const bob = Math.sin(frame*0.09+h.phase)*3;
+
+ if (h.type==="slime") {
+  // Criatura que rebota
+  ctx.fillStyle="#241435";
+  ctx.fillRect(x,h.y+h.h-3,h.w,5);
+  ctx.fillStyle="#7df5c8";
+  ctx.fillRect(x+4,h.y+5+bob,h.w-8,h.h-8);
+  ctx.fillRect(x+9,h.y+bob,h.w-18,7);
+  ctx.fillStyle="#24564e";
+  ctx.fillRect(x+9,h.y+9+bob,4,5);
+  ctx.fillRect(x+h.w-13,h.y+9+bob,4,5);
+  ctx.fillStyle="#fff";
+  ctx.fillRect(x+10,h.y+9+bob,2,2);
+  ctx.fillRect(x+h.w-12,h.y+9+bob,2,2);
+
+ } else if (h.type==="fire") {
+  // Llamas que parpadean
+  const flicker = Math.sin(frame*0.3+h.phase)*5;
+  ctx.fillStyle="#7b274d";
+  ctx.fillRect(x,h.y+h.h-5,h.w,5);
+  for(let i=0;i<Math.max(1,Math.floor(h.w/12));i++) {
+   const px=x+i*(h.w/Math.max(1,Math.floor(h.w/12)));
+   ctx.fillStyle=i%2===0?"#ff5a83":"#ffad66";
+   ctx.fillRect(px,h.y+7+flicker,h.w/14+2,h.h-12-flicker);
+   ctx.fillStyle="#ffe3a5";
+   ctx.fillRect(px+3,h.y+15+flicker,3,h.h-22);
+  }
+
+ } else if (h.type==="saw") {
+  // Sierra giratoria
+  ctx.save();
+  ctx.translate(x+h.w/2,h.y+h.h/2+bob);
+  ctx.rotate(frame*0.07+h.phase);
+  ctx.fillStyle="#d9d9ed";
+  for(let i=0;i<8;i++) {
+   ctx.rotate(Math.PI/4);
+   ctx.fillRect(-3,-h.h/2-3,6,10);
+  }
+  ctx.fillStyle="#a5a2c5";
   ctx.beginPath();
-  ctx.moveTo(px,h.y+h.h);
-  ctx.lineTo(px+(h.w/count)/2,h.y);
-  ctx.lineTo(px+h.w/count,h.y+h.h);
+  ctx.arc(0,0,Math.max(8,Math.min(h.w,h.h)/2-2),0,Math.PI*2);
   ctx.fill();
+  ctx.fillStyle="#443151";
+  ctx.fillRect(-4,-4,8,8);
+  ctx.restore();
+
+ } else {
+  // Pinchos clásicos
+  ctx.fillStyle="#321a47";
+  ctx.fillRect(x,h.y+h.h-5,h.w,5);
+  ctx.fillStyle="#ff77ae";
+  const count=Math.max(1,Math.floor(h.w/15));
+  for(let i=0;i<count;i++) {
+   const px=x+i*(h.w/count);
+   ctx.beginPath();
+   ctx.moveTo(px,h.y+h.h);
+   ctx.lineTo(px+(h.w/count)/2,h.y);
+   ctx.lineTo(px+h.w/count,h.y+h.h);
+   ctx.fill();
+  }
  }
 }
 
+
 function drawPixelFallback(x,y,isIv) {
- // Pixel-art boy, used if Drive images are unavailable
  const shirt=isIv?"#f28cb6":"#282239";
  const hair=isIv?"#302039":"#171522";
  const skin="#f2c5ad";
- const px=2;
- const put=(xx,yy,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x+xx*px,y+yy*px,w*px,h*px)};
- // Hair and head
+ const put=(xx,yy,w,h,c)=>{
+  ctx.fillStyle=c;
+  ctx.fillRect(x+xx*2,y+yy*2,w*2,h*2);
+ };
+
+ const running = Math.abs(player.vx)>0.1 && player.grounded;
+ const step = running ? Math.round(Math.sin(frame*0.55)*2) : 0;
+ const arm = running ? Math.round(Math.sin(frame*0.55)*2) : 0;
+
+ // Cabello y cara
  put(4,0,8,3,hair);
  put(3,2,10,5,hair);
  put(4,3,8,6,skin);
@@ -432,16 +596,23 @@ function drawPixelFallback(x,y,isIv) {
  put(12,4,2,3,skin);
  put(5,5,1,1,"#34213a");
  put(10,5,1,1,"#34213a");
- // Neck and body
+
+ // Cuello y camiseta
  put(6,9,4,2,skin);
  put(3,11,10,8,shirt);
- put(1,12,3,7,skin);
- put(12,12,3,7,skin);
- // Pants and shoes
- put(4,19,4,5,"#302444");
- put(9,19,4,5,"#302444");
- put(3,24,5,2,"#151020");
- put(9,24,5,2,"#151020");
+
+ // Brazos animados
+ put(1,12+arm,3,6,skin);
+ put(12,12-arm,3,6,skin);
+
+ // Piernas animadas
+ put(4-step,19+Math.max(0,step),4,5,"#302444");
+ put(9+step,19+Math.max(0,-step),4,5,"#302444");
+
+ // Zapatos
+ put(3-step,24+Math.max(0,step),5,2,"#151020");
+ put(9+step,24+Math.max(0,-step),5,2,"#151020");
+
  if(isIv) {
   put(4,2,7,1,"#e7c6dc");
  } else {
@@ -450,13 +621,38 @@ function drawPixelFallback(x,y,isIv) {
 }
 
 function drawCharacter(x,y,isIv) {
- const img=isIv?ivImg:ethiImg;
- if(img.complete && img.naturalWidth>0) {
-  ctx.drawImage(img,Math.floor(x),Math.floor(y),32,42);
+ const img = isIv ? ivImg : ethiImg;
+ const running = Math.abs(player.vx)>0.1 && player.grounded;
+
+ let bob = 0;
+ let tilt = 0;
+ let stretch = 1;
+
+ if (player.grounded && running) {
+  bob = Math.sin(frame*0.55)*2;
+  tilt = Math.sin(frame*0.4)*0.045;
+  stretch = 1+Math.sin(frame*0.55)*0.035;
+ } else if (player.grounded) {
+  bob = Math.sin(frame*0.08)*1.5;
  } else {
-  drawPixelFallback(Math.floor(x),Math.floor(y),isIv);
+  tilt = player.vy < 0 ? -0.09 : 0.09;
+  stretch = player.vy < 0 ? 0.94 : 1.06;
  }
+
+ ctx.save();
+ ctx.translate(x+16,y+21+bob);
+ ctx.rotate(tilt);
+ ctx.scale(1/stretch,stretch);
+
+ if (img.complete && img.naturalWidth>0) {
+  ctx.drawImage(img,-16,-21,32,42);
+ } else {
+  drawPixelFallback(-16,-21,isIv);
+ }
+
+ ctx.restore();
 }
+
 
 function drawGoal() {
  const x=level.goalX-camera;
