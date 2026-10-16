@@ -72,7 +72,7 @@ p{line-height:1.7;font-size:13px}
   <h1>TE ENCONTRÉ, ETHI</h1>
   <div id="letter">Para mi Bebito. ♡
 
-Si llegaste hasta acá, es porque te rendiste en el camino. Me buscaste entre mundos y superaste cada obstáculo pensando en mi.
+Si llegaste hasta acá, es porque no te rendiste en el camino. Me buscaste entre mundos y superaste cada obstáculo pensando en mi.
 
 No existe un nivel demasiado difícil cuando se trata de encontrar a alguien tan especial.
 
@@ -542,7 +542,11 @@ window.addEventListener("keyup",e=>{
  if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
 });
 
-$("start").onclick=startGame;
+$("start").addEventListener("click", () => {
+  startGame().catch(error => {
+    console.error("Error al iniciar:", error);
+  });
+});
 $("again").onclick=()=>{
  $("ending").classList.add("hidden");
  $("startPanel").classList.remove("hidden");
