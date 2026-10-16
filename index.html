@@ -509,7 +509,10 @@ window.addEventListener("keyup",e=>{
  if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
 });
 
-$("start").onclick=startGame;
+$("start").onclick=()=>{
+ alert("¡EL BOTÓN FUNCIONA!");
+ startGame();
+};
 $("again").onclick=()=>{
  $("ending").classList.add("hidden");
  $("startPanel").classList.remove("hidden");
