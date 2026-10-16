@@ -542,11 +542,10 @@ window.addEventListener("keyup",e=>{
  if(e.key==="ArrowRight"||e.key==="d")keys.right=false;
 });
 
-$("start").addEventListener("click", () => {
-  startGame().catch(error => {
-    console.error("Error al iniciar:", error);
-  });
-});
+$("start").onclick = () => {
+  alert("EL BOTÓN FUNCIONA");
+  startGame();
+};
 $("again").onclick=()=>{
  $("ending").classList.add("hidden");
  $("startPanel").classList.remove("hidden");
