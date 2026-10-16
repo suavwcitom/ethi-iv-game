@@ -386,55 +386,72 @@ for(const h of level.hearts){
  // checkpoints, hearts and exit have labels in the HUD.
 }
 
+
 function update(){
  frame++;
+
  let dir=(keys.right?1:0)-(keys.left?1:0);
  player.vx=dir*3.5;
- if(dir){player.face=dir;player.anim++}
- if(jumpPressed&&player.grounded){
-  player.vy=-11.6;player.grounded=false;
- }
- jumpPressed=false;
 
+ if(dir){
+  player.face=dir;
+  player.anim++;
+ }
+
+ if(jumpPressed&&player.grounded){
+  player.vy=-11.6;
+  player.grounded=false;
+ }
+
+ jumpPressed=false;
  player.vy=Math.min(player.vy+.58,13);
- let oldBottom=player.y+player.h;
+
+ const oldBottom=player.y+player.h;
+
  player.x+=player.vx;
  player.x=Math.max(0,Math.min(level.length-player.w,player.x));
+
  player.y+=player.vy;
  player.grounded=false;
 
  for(const p of level.platforms){
   if(player.vy>=0&&oldBottom<=p.y+4&&
-     player.y+player.h>=p.y&&player.x+player.w>p.x&&player.x<p.x+p.w){
-   player.y=p.y-player.h;player.vy=0;player.grounded=true;
+     player.y+player.h>=p.y&&
+     player.x+player.w>p.x&&player.x<p.x+p.w){
+   player.y=p.y-player.h;
+   player.vy=0;
+   player.grounded=true;
   }
  }
 
- if(player.y>650)respawn();
+ if(player.y>650){
+  respawn();
+ }
 
  if(player.invincible>0)player.invincible--;
 
- const hb={x:player.x+4,y:player.y+4,w:player.w-8,h:player.h-4};
- if(player.invincible===0&&level.spikes.some(s=>intersects(hb,s)))respawn();
+ const hb={
+  x:player.x+4,
+  y:player.y+4,
+  w:player.w-8,
+  h:player.h-4
+ };
 
-
-for(const h of level.hearts){
- if(h.got || !heartIsSafe(h)) continue;
-
- const dx=player.x+player.w/2-h.x;
- const dy=player.y+player.h/2-h.y;
-
- if(dx*dx+dy*dy<32*32){
-  h.got=true;
-  score++;
+ if(player.invincible===0&&
+    level.spikes.some(s=>intersects(hb,s))){
+  respawn();
  }
-}
 
-   Math.abs(s.x-h.x)<s.w+12&&Math.abs(s.y-h.y)<s.h+18);
-  if(dangerous)continue;
-  let dx=player.x+player.w/2-h.x;
-  let dy=player.y+player.h/2-h.y;
-  if(dx*dx+dy*dy<32*32){h.got=true;score++}
+ for(const h of level.hearts){
+  if(h.got||!heartIsSafe(h))continue;
+
+  const dx=player.x+player.w/2-h.x;
+  const dy=player.y+player.h/2-h.y;
+
+  if(dx*dx+dy*dy<32*32){
+   h.got=true;
+   score++;
+  }
  }
 
  level.checkpoints.forEach((x,i)=>{
@@ -443,16 +460,21 @@ for(const h of level.hearts){
   }
  });
 
+ const lastPlatform=level.platforms[level.platforms.length-1];
+
  if(player.x+player.w/2>=level.exit&&
-    player.y+player.h>level.platforms[level.platforms.length-1].y-70){
-  nextLevel();return;
+    player.y+player.h>lastPlatform.y-70){
+  nextLevel();
+  return;
  }
 
  camera=Math.max(0,Math.min(level.length-W,player.x-W*.32));
+
  $("score").textContent=score;
  $("lives").textContent=lives;
  $("levelLabel").textContent=level.name;
 }
+
 
 function loop(){
  if(!running)return;
