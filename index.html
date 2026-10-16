@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#180d25">
 <title>Ethi & Iv ♡</title>
-
 <style>
 *{box-sizing:border-box}
 html,body{
@@ -14,10 +13,7 @@ html,body{
  background:#180d25;color:#ffe5f3;font-family:monospace;
  touch-action:none
 }
-canvas{
- display:block;width:100%;height:100%;
- image-rendering:pixelated
-}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
 #hud{
  position:fixed;top:10px;left:10px;right:10px;
  display:flex;justify-content:space-between;gap:5px;
@@ -71,12 +67,11 @@ p{line-height:1.7;font-size:13px}
 }
 </style>
 </head>
-
 <body>
 <canvas id="game"></canvas>
 
 <div id="hud" class="hidden">
- <div class="hudbox">♡ <span id="score">0</span>/8</div>
+ <div class="hudbox">♡ <span id="score">0</span>/24</div>
  <div class="hudbox" id="levelLabel">BOSQUE ROSA</div>
  <div class="hudbox">♥ <span id="lives">3</span></div>
 </div>
@@ -130,127 +125,62 @@ const W=960,H=540;
 canvas.width=W;
 canvas.height=H;
 
-
 function makeCourse(name,length,spikeEvery,exit){
  const platforms=[[0,480,230]];
  const heights=[440,400,440,480];
- let x=260;
- let i=0;
+ let x=260,i=0;
 
- // Plataformas más cercanas y cambios de altura alcanzables.
  while(x<length-330){
   platforms.push([x,heights[i%heights.length],110]);
   x+=130;
   i++;
  }
 
- // Llegada amplia y segura.
  platforms.push([length-200,480,200]);
 
  const spikes=[];
-
- // Los pinchos aparecen en plataformas alternadas.
- // Siempre quedan espacios para aterrizar y saltar.
  for(let j=1;j<platforms.length-1;j++){
-  const p=platforms[j];
-
   if(j%spikeEvery===0){
+   const p=platforms[j];
    spikes.push([p[0]+36,p[1]-15]);
   }
  }
 
- // Ocho corazones repartidos por plataformas sin pinchos.
  const safePlatforms=platforms
   .slice(1,-1)
   .filter((p,index)=>((index+1)%spikeEvery)!==0);
 
  const hearts=[];
-
  for(let j=0;j<8;j++){
-  const index=Math.round(
-   j*(safePlatforms.length-1)/7
-  );
+  const index=Math.round(j*(safePlatforms.length-1)/7);
   const p=safePlatforms[index];
-
-  hearts.push([
-   p[0]+p[2]/2,
-   p[1]-45
-  ]);
+  hearts.push([p[0]+p[2]/2,p[1]-45]);
  }
 
- return {
-  name,
-  length,
-  platforms,
-  spikes,
-  hearts,
-  exit
- };
+ return {name,length,platforms,spikes,hearts,exit};
 }
 
+/* NIVELES: bloque corregido, sin código antiguo suelto. */
 const levels=[
  makeCourse("BOSQUE ROSA",2600,4,2500),
- makeCourse("CUEVAS DEL DESTINO",3000,3,2900),
+ {
+  ...makeCourse("CUEVAS DEL DESTINO",3000,3,2900),
+  // Pinchos colocados sobre plataformas concretas.
+  spikes:[
+   [296,425],
+   [556,425],
+   [946,385],
+   [1346,425],
+   [1736,465],
+   [2126,425],
+   [2516,385]
+  ]
+ },
  makeCourse("CASTILLO DEL SIEMPRE",3400,2,3280)
-];
- spikes:[
- [365,465],[500,415],[685,420],[920,375],
- [1140,335],[1360,405],[1580,365],[1820,420],
- [2030,375],[2370,465]
-],
- hearts:[
- [210,435],[455,390],[665,340],[870,395],
- [1100,350],[1320,310],[1550,380],[2220,350]
- ],
- exit:2500
-},
-{
- name:"CUEVAS DEL DESTINO",length:3000,
- platforms:[
- [0,480,250],[320,425,130],[510,365,130],[710,420,130],
- [910,350,130],[1110,405,130],[1310,330,130],
- [1520,405,130],[1730,345,130],[1940,415,130],
- [2150,350,130],[2360,410,130],[2570,355,130],[2780,480,220]
- ],
- spikes:[
- [270,465],[445,410],[600,350],[845,405],
- [1000,335],[1245,390],[1460,390],[1630,330],
- [1910,400],[2040,335],[2335,395],[2470,340],
- [2750,465]
-],
- hearts:[
- [365,390],[550,325],[750,380],[950,310],
- [1150,365],[1350,290],[1560,365],[2180,310]
- ],
- exit:2900
-},
-{
- name:"CASTILLO DEL SIEMPRE",length:3400,
- platforms:[
- [0,480,220],[280,420,120],[460,350,120],[650,410,120],
- [840,330,120],[1030,400,120],[1220,320,120],
- [1410,400,120],[1600,325,120],[1790,410,120],
- [1980,330,120],[2170,410,120],[2360,335,120],
- [2550,410,120],[2740,345,120],[2930,410,120],
- [3120,480,280]
- ],
-spikes:[
- [235,465],[425,405],[575,395],[815,315],
- [950,385],[1190,305],[1340,385],[1570,310],
- [1720,395],[1960,315],[2090,395],[2340,320],
- [2480,395],[2720,330],[2860,395],[3090,465]
-],
- hearts:[
- [320,385],[500,310],[690,375],[880,290],
- [1070,365],[1260,280],[1450,365],[1640,285]
- ],
- exit:3280
-}
 ];
 
 let levelIndex=0,level,score=0,lives=3,camera=0;
-let running=false,frame=0;
-let animationId=null;
+let running=false,frame=0,animationId=null;
 let keys={left:false,right:false};
 let jumpPressed=false;
 
@@ -264,11 +194,6 @@ function intersects(a,b){
         a.y<b.y+b.h&&a.y+a.h>b.y;
 }
 
-/*
- Busca una posición sobre una plataforma que no se superponga
- con pinchos. Si el punto solicitado no es seguro, busca otro
- lugar cercano y seguro.
-*/
 function findSafeSpawn(targetX){
  const candidates=[];
 
@@ -278,13 +203,14 @@ function findSafeSpawn(targetX){
   if(maxX<minX)continue;
 
   const preferred=Math.max(minX,Math.min(maxX,targetX));
-
   candidates.push({
    x:preferred,y:p.y-player.h,
    distance:Math.abs(preferred-targetX)
   });
 
-  const center=Math.max(minX,Math.min(maxX,p.x+p.w/2-player.w/2));
+  const center=Math.max(
+   minX,Math.min(maxX,p.x+p.w/2-player.w/2)
+  );
   candidates.push({
    x:center,y:p.y-player.h,
    distance:Math.abs(center-targetX)+12
@@ -305,21 +231,13 @@ function findSafeSpawn(targetX){
    x:c.x+4,y:c.y+4,
    w:player.w-8,h:player.h-4
   };
-
-  const dangerous=level.spikes.some(s=>intersects(body,s));
-
-  if(!dangerous){
+  if(!level.spikes.some(s=>intersects(body,s))){
    return {x:c.x,y:c.y,platformY:c.y+player.h};
   }
  }
 
- // Respaldo: plataforma inicial, que está libre de pinchos.
  const first=level.platforms[0];
- return {
-  x:first.x+10,
-  y:first.y-player.h,
-  platformY:first.y
- };
+ return {x:first.x+10,y:first.y-player.h,platformY:first.y};
 }
 
 function loadLevel(){
@@ -341,7 +259,6 @@ function loadLevel(){
   startSpawn:null
  };
 
- // Cada nivel calcula sus propios puntos seguros.
  level.startSpawn=findSafeSpawn(40);
 
  const checkpointTargets=[
@@ -350,8 +267,7 @@ function loadLevel(){
  ];
 
  level.checkpoints=checkpointTargets.map(x=>({
-  x,
-  spawn:findSafeSpawn(x)
+  x,spawn:findSafeSpawn(x)
  }));
 
  placePlayer(level.startSpawn);
@@ -394,17 +310,13 @@ async function startGame(){
   if(!document.fullscreenElement&&document.documentElement.requestFullscreen){
    await document.documentElement.requestFullscreen();
   }
- }catch(e){
-  // El juego sigue aunque no se permita pantalla completa.
- }
+ }catch(e){}
 
  try{
   if(screen.orientation&&screen.orientation.lock){
    await screen.orientation.lock("landscape");
   }
- }catch(e){
-  // Algunos celulares no permiten bloquear la orientación.
- }
+ }catch(e){}
 
  if(running){
   cancelAnimationFrame(animationId);
@@ -435,14 +347,8 @@ function nextLevel(){
  }
 }
 
-/*
- Al morir, reaparece en el último punto activado.
- Si todavía no activó ninguno, vuelve al inicio seguro
- del nivel actual, nunca a las coordenadas de otro nivel.
-*/
 function respawn(){
  lives--;
-
  if(lives<=0)lives=3;
 
  const checkpointIndex=level.activated-1;
@@ -450,11 +356,7 @@ function respawn(){
   ?level.checkpoints[checkpointIndex]
   :null;
 
- const spawn=checkpoint
-  ?checkpoint.spawn
-  :level.startSpawn;
-
- placePlayer(spawn);
+ placePlayer(checkpoint?checkpoint.spawn:level.startSpawn);
  updateHUD();
 }
 
@@ -499,13 +401,11 @@ function drawPlatforms(){
  for(const p of level.platforms){
   const x=p.x-camera;
   if(x+p.w<0||x>W)continue;
-
   ctx.fillStyle="#352044";
   ctx.fillRect(x,p.y,p.w,p.h);
   ctx.fillStyle="#c86eac";
   ctx.fillRect(x,p.y,p.w,5);
   ctx.fillStyle="#71416f";
-
   for(let bx=x+8;bx<x+p.w;bx+=24){
    ctx.fillRect(bx,p.y+10,12,4);
   }
@@ -516,7 +416,6 @@ function drawSpikes(){
  for(const s of level.spikes){
   const x=s.x-camera;
   ctx.fillStyle="#ffb5d7";
-
   for(let a=x;a<x+s.w;a+=12){
    ctx.beginPath();
    ctx.moveTo(a,s.y+s.h);
@@ -615,13 +514,12 @@ function draw(){
  for(let i=0;i<level.checkpoints.length;i++){
   const cp=level.checkpoints[i];
   const x=cp.x-camera;
-
   ctx.fillStyle=i<level.activated?"#fff0b4":"#89618f";
   ctx.fillRect(x,340,4,140);
   ctx.fillStyle="#ff8fc9";
   ctx.fillRect(x+4,345,25,15);
  }
- 
+
  for(const h of level.hearts){
   if(!h.got&&heartIsSafe(h)){
    const y=h.y+Math.sin(frame*.08+h.x)*2;
@@ -668,20 +566,16 @@ function update(){
  player.vy=Math.min(player.vy+.58,13);
 
  const oldBottom=player.y+player.h;
-
  player.x+=player.vx;
  player.x=Math.max(0,Math.min(level.length-player.w,player.x));
-
  player.y+=player.vy;
  player.grounded=false;
 
  for(const p of level.platforms){
   if(
-   player.vy>=0&&
-   oldBottom<=p.y+4&&
+   player.vy>=0&&oldBottom<=p.y+4&&
    player.y+player.h>=p.y&&
-   player.x+player.w>p.x&&
-   player.x<p.x+p.w
+   player.x+player.w>p.x&&player.x<p.x+p.w
   ){
    player.y=p.y-player.h;
    player.vy=0;
@@ -689,7 +583,6 @@ function update(){
   }
  }
 
- // Caída: reaparecer y terminar esta actualización.
  if(player.y>650){
   respawn();
   return;
@@ -709,30 +602,22 @@ function update(){
 
  for(const h of level.hearts){
   if(h.got||!heartIsSafe(h))continue;
-
   const dx=player.x+player.w/2-h.x;
   const dy=player.y+player.h/2-h.y;
-
   if(dx*dx+dy*dy<32*32){
    h.got=true;
    score++;
   }
  }
 
- // Activar checkpoints en orden.
  for(let i=0;i<level.checkpoints.length;i++){
   const cp=level.checkpoints[i];
-
-  if(
-   player.x+player.w/2>=cp.x&&
-   level.activated===i
-  ){
+  if(player.x+player.w/2>=cp.x&&level.activated===i){
    level.activated=i+1;
   }
  }
 
  const lastPlatform=level.platforms[level.platforms.length-1];
-
  if(
   player.x+player.w/2>=level.exit&&
   player.y+player.h>lastPlatform.y-70
@@ -741,16 +626,12 @@ function update(){
   return;
  }
 
- camera=Math.max(
-  0,Math.min(level.length-W,player.x-W*.32)
- );
-
+ camera=Math.max(0,Math.min(level.length-W,player.x-W*.32));
  updateHUD();
 }
 
 function loop(){
  if(!running)return;
-
  try{
   update();
   if(!running)return;
@@ -772,7 +653,6 @@ function hold(id,key){
  });
 
  const release=()=>{keys[key]=false};
-
  ["pointerup","pointercancel","lostpointercapture"].forEach(
   ev=>el.addEventListener(ev,release)
  );
@@ -791,7 +671,6 @@ window.addEventListener("keydown",e=>{
  if(["ArrowLeft","ArrowRight","ArrowUp"," "].includes(e.key)){
   e.preventDefault();
  }
-
  if(e.key==="ArrowLeft"||e.key==="a")keys.left=true;
  if(e.key==="ArrowRight"||e.key==="d")keys.right=true;
  if(e.key==="ArrowUp"||e.key===" ")jumpPressed=true;
@@ -824,9 +703,7 @@ $("fullscreen").addEventListener("click",async()=>{
   if(screen.orientation&&screen.orientation.lock){
    await screen.orientation.lock("landscape");
   }
- }catch(e){
-  // Pantalla completa y orientación dependen del navegador.
- }
+ }catch(e){}
 });
 
 loadLevel();
